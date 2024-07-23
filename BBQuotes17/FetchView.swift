@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct QuoteView: View {
+struct FetchView: View {
     let vm = ViewModel()
     let show: String
     @State var showCharacterInfo = false
@@ -15,7 +15,7 @@ struct QuoteView: View {
     var body: some View {
         GeometryReader{ geo in
             ZStack {
-                Image(show.lowercased().replacingOccurrences(of: " ", with: ""))
+                Image(show.removeCaseAnSpace())
                     .resizable()
                     .frame(width: geo.size.width * 2.7, height: geo.size.height * 1.2)
                 
@@ -30,7 +30,7 @@ struct QuoteView: View {
                         case .fetching:
                             ProgressView()
                             
-                        case .success:
+                        case .successQuote:
                             Text("\"\(vm.quote.quote)\"")
                                 .minimumScaleFactor(0.5)
                                 .multilineTextAlignment(.center)
@@ -62,26 +62,49 @@ struct QuoteView: View {
                                 showCharacterInfo.toggle()
                             }
                             
+                        case .successEpisode:
+                            EpisodeView(episode: vm.episode)
+                            
                         case .failed(let error):
                             Text(error.localizedDescription)
                         }
                         
-                        Spacer()
+                        Spacer(minLength: 20)
                     }
                     
-                    Button {
-                        Task{
-                            await vm.getData(for: show)
+                    HStack {
+                        Button {
+                            Task{
+                                await vm.getQuoteData(for: show)
+                            }
+                        } label: {
+                            Text("Get Random Quote")
+                                .font(.title3)
+                                .foregroundColor(.white)
+                                .padding()
+                                .background(Color("\(show.removeSpaces())Button"))
+                                .clipShape(.rect(cornerRadius: 7))
+                                .shadow(color: Color("\(show.removeSpaces())Shadow"), radius: 2)
                         }
-                    } label: {
-                        Text("Get Random Quote")
-                            .font(.title)
-                            .foregroundColor(.white)
-                            .padding()
-                            .background(Color("\(show.replacingOccurrences(of: " ", with: ""))Button"))
-                            .clipShape(.rect(cornerRadius: 7))
-                            .shadow(color: Color("\(show.replacingOccurrences(of: " ", with: ""))Shadow"), radius: 2)
+                        
+                        Spacer()
+                        
+                        Button {
+                            Task{
+                                await vm.getEpisodeData(for: show)
+                            }
+                        } label: {
+                            Text("Get Random Episode")
+                                .font(.title3)
+                                .foregroundColor(.white)
+                                .padding()
+                                .background(Color("\(show.removeSpaces())Button"))
+                                .clipShape(.rect(cornerRadius: 7))
+                                .shadow(color: Color("\(show.removeSpaces())Shadow"), radius: 2)
+                        }
                     }
+                    .padding(.horizontal, 30)
+                    
                     Spacer(minLength: 95)
                 }
                 .frame(width: geo.size.width, height: geo.size.height)
@@ -96,6 +119,6 @@ struct QuoteView: View {
 }
 
 #Preview {
-    QuoteView(show: "Breaking Bad")
+    FetchView(show: Constants.bbName)
         .preferredColorScheme(/*@START_MENU_TOKEN@*/.dark/*@END_MENU_TOKEN@*/)
 }
